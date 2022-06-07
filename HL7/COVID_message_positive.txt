@@ -1,0 +1,11 @@
+Dear PATIENTFIRSTNAME (DOB)
+
+Your COVID-19 test on DD/MM/YYYY is 
+
+POSITIVE
+
+ARRL Lab #:
+
+To keep yourself safe, please follow the latest advice found here https://www.coronavirus.vic.gov.au/checklist-cases. Coronavirus Hotline: 1 800 675 398. If you think you need urgent medical care, please call 000 or call then attend your local hospital's emergency department. Ensure you say you have tested POSITIVE to covid and wear a mask.
+
+This message is from the Australian Rickettsial Reference Laboratory. TEL 03 4215 1360

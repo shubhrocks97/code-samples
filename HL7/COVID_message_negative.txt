@@ -1,0 +1,13 @@
+Dear PATIENTFIRSTNAME (DOB)
+
+Your COVID-19 test on DD/MM/YYYY is
+
+NEGATIVE
+
+ARRL Lab #:
+
+If you feel unwell please call your doctor.
+
+www.dhhs.vic.gov.au/coronavirus
+
+This message is from the Australian Rickettsial Reference Laboratory. TEL 03 4215 1360

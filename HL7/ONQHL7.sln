@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32014.148
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ONQHL7.QueueDataProcessor", "ONQHL7.QueueDataProcessor\ONQHL7.QueueDataProcessor.csproj", "{BF6D0CBF-5C29-4B3E-9D02-FBBE0590D0B5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ONQHL7.PluginInterfaces", "ONQHL7.PluginInterfaces\ONQHL7.PluginInterfaces.csproj", "{65FD94A2-A815-4501-A20D-C901E9C39A4A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ONQHL7.MessageGenerator_V1", "ONQHL7.MessageGenerator_V1\ONQHL7.MessageGenerator_V1.csproj", "{D87A9AF2-6BC3-4635-90A3-4F0BA7886829}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ONQHL7.GlobalDb", "ONQHL7.GlobalDb\ONQHL7.GlobalDb.csproj", "{4E9137BB-B803-4695-B9A9-D5F04504C343}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ONQHL7.NotificationSender_V1", "ONQHL7.NotificationSender_V1\ONQHL7.NotificationSender_V1.csproj", "{E6643ABB-466B-4D87-B20E-1FF5A0DCF3C6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BF6D0CBF-5C29-4B3E-9D02-FBBE0590D0B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF6D0CBF-5C29-4B3E-9D02-FBBE0590D0B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF6D0CBF-5C29-4B3E-9D02-FBBE0590D0B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF6D0CBF-5C29-4B3E-9D02-FBBE0590D0B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{65FD94A2-A815-4501-A20D-C901E9C39A4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{65FD94A2-A815-4501-A20D-C901E9C39A4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{65FD94A2-A815-4501-A20D-C901E9C39A4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{65FD94A2-A815-4501-A20D-C901E9C39A4A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D87A9AF2-6BC3-4635-90A3-4F0BA7886829}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D87A9AF2-6BC3-4635-90A3-4F0BA7886829}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D87A9AF2-6BC3-4635-90A3-4F0BA7886829}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D87A9AF2-6BC3-4635-90A3-4F0BA7886829}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E9137BB-B803-4695-B9A9-D5F04504C343}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E9137BB-B803-4695-B9A9-D5F04504C343}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E9137BB-B803-4695-B9A9-D5F04504C343}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E9137BB-B803-4695-B9A9-D5F04504C343}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E6643ABB-466B-4D87-B20E-1FF5A0DCF3C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E6643ABB-466B-4D87-B20E-1FF5A0DCF3C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E6643ABB-466B-4D87-B20E-1FF5A0DCF3C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E6643ABB-466B-4D87-B20E-1FF5A0DCF3C6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B548B121-9E84-4AC7-9921-14B79D00F172}
+	EndGlobalSection
+EndGlobal

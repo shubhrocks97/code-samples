@@ -1,0 +1,493 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "ONQHL7-QueueDataProcessor";
+}
+
+<div class="text-center">
+    <span id="notification"></span>
+    <div id="grid"></div>
+    <div id="example">
+        <script>
+            $(document).ready(function () {
+                var crudServiceBaseUrl = window.location.origin + "/api",
+                    dataSource = new kendo.data.DataSource
+                    ({
+                        type: "json",
+                        serverPaging: true,
+                        serverSorting: true,
+                        serverFiltering: true,
+                        allowUnsort: true,
+                        pageSize: 10,
+                        transport: 
+                        {
+                            read: 
+                            {
+                                url: crudServiceBaseUrl + "/HL7Message/getListOfProcessedData/",
+                                dataType: "json",
+                                type: "POST",
+                                contentType: "application/json;",
+                                cache: false,
+                                async: false
+                            },
+                            parameterMap: function (options) 
+                            {
+                                return JSON.stringify(options);
+                            }
+                        },
+                        serverSorting: true,                                    // server Side sorting by 
+                        sort: { field: "ModifiedDate", dir: "desc" },
+                        batch: true,
+                        schema: 
+                        {
+                            model: 
+                            {
+                                id: "SampleId",
+                                fields: 
+                                {
+                                    SampleId: { type: "string" },
+                                    ArrlLabNo: { type: "string" },
+                                    HL7Id: { type: "string" },
+                                    Status: { type: "string" },
+                                    IsStored: { type: "string" },
+                                    CreatedDate : { type:"date"},
+                                    ModifiedDate:{type:"date"},
+                                    ScheduledTime : { type:"date"},
+                                    NotificationStatus:{type:"string"},
+                                    ExceptionMsg: { type: "string" },
+                                    ExceptionStatus: { type: "string" }
+                                }
+                            },
+                            data: "data", total: "total"
+                        }
+                    });
+                    
+
+                    $("#grid").kendoGrid({
+                        dataSource: dataSource,
+                        height: 720,
+                        pageable: {
+                            refresh: true,
+                            serverPaging: true,
+                            serverSorting: true,
+                            serverFiltering: true,
+                        },
+                        sortable: true,
+                        filterable: false,
+                        scrollable: false,
+                        navigatable: false,
+                        noRecords: true,
+                        dataBound: onDataBound,
+                        toolbar: [
+                            "<img class='qlims-logo' src='./images/qlims_logo_blue.png'> <div class='headerdivider'></div><img class='onq-logo' src='./images/onq_logo.png'> <span class = 'ui-header'>Queue Data Status</span>",
+                            { template: "<button id='RegenerateButton' class='k-button k-secondary' onclick=regenerateAll()><img class='button-regen-all' src='./images/icons8-refresh-512.png'> All</button>"} ,
+                            "search"],
+                        columns: [
+                        {
+                            field: "sampleId",
+                            title: "QLIMS Sample ID",
+                            template: "<div class='msg-photo' style='background-image: url(/images/email_material.png);background-size: cover;background-size: 70px 70px'></div><div class='sample-id'>#: sampleId #</div>",
+                            width: 150
+                        },{
+                            field: "arrlLabNo",
+                            title: "ARRL Lab No",
+                            template: "<div class='arrlLabNoTemplate'>#: arrlLabNo #</div>",
+                            width: 150
+                        },{
+                            field: "createdDate",
+                            title: "Created Date",
+                            template:"<div class='createdDateTemplate'>#= kendo.toString(kendo.parseDate(createdDate+'Z','yyyy-MM-ddTHH:mm:sszzz'), 'dd/MM/yyyy hh:mm tt') #</div>",
+                            width: 150
+                        },{
+                            field: "modifiedDate",
+                            title: "Modified Date",
+                            template:"<div class='modifiedDateTemplate'>#= kendo.toString(kendo.parseDate(modifiedDate+'Z','yyyy-MM-ddTHH:mm:sszzz'), 'dd/MM/yyyy hh:mm tt')#</div>",
+                            width: 150
+                        },{
+                            field: "isStored",
+                            title: "HL7 Stored in Blob",
+                            template: "<span id='badge_#=sampleId#' class='isStoredBadgeTemplate'></span>",
+                            width: 150
+                        }, {
+                            field: "status",
+                            title: "HL7 Status",
+                            template: "<span id='badge_#=sampleId#' class='statusBadgeTemplate'></span>",
+                            width: 150
+                        }, {
+                            field: "ScheduledTime",
+                            title: "SMS Scheduled Time",
+                            template:"<div class='scheduledTimeTemplate'>#= kendo.toString(kendo.parseDate(scheduledTime+'Z','yyyy-MM-ddTHH:mm:sszzz'), 'dd/MM/yyyy hh:mm tt')#</div>",
+                            width: 150
+                        }, {
+                            field: "notificationStatus",
+                            title: "SMS Notification Status",
+                            template: "<span id='badge_#=sampleId#' class='notificationBadgeTemplate'></span>",
+                            width: 150
+                        },{
+                            field: "exceptionMsg",
+                            title: "Exception Message",
+                            width: 150,
+                            sortable: false,
+                            template: "#if(exceptionStatus=='FileException'){#<div id=badge_#=sampleId# class=exceptionBadgeTemplate>#=exceptionMsg#</div>#} else if(exceptionStatus=='StorageException') {#<div id=badge_#=sampleId# class=exceptionStatusTemplate>Upload to Blob Storage Failed</div># } else if(exceptionStatus=='SMSException') {#<div id=badge_#=sampleId# class=exceptionStatusTemplate>Failed to send SMS</div># } else {##}#",
+                        },{
+                            field: "Retry",
+                            title: "Action",
+                            width: 100,
+                            sortable: false,
+                            template: "<div class='Action-container'><span>#if(notificationStatus=='N'){#<button class='btn btn-info discard' onclick=discardSample(#=sampleId#,#=hL7Id#)><img src='./images/icons8-close-480.png'></button>#} else {#<button class='btn btn-info discard disabled'><img src='./images/icons8-close-480.png'></button>#}#</span><span>#if(status=='F'){#<button class='btn btn-info regen' onclick=regenerateFile(#=sampleId#,#=hL7Id#)><img src='./images/icons8-refresh-512.png'></button>#} else {#<button class='btn btn-info regen disabled'><img src='./images/icons8-refresh-512.png'></button>#}#</span></div>"
+                        }],
+                    });
+
+            $("#RegenerateButton").kendoTooltip({ callout:false,content: "Regenerates Files for all failed ones in the current page." });
+            $(".discard").kendoTooltip({callout:false, content:"Discard"});
+            $(".regen").kendoTooltip({callout:false, content:"Regenerate"});
+            });
+
+            
+
+            function onDataBound(e) {
+                var grid = this;
+                if (grid._data.length != 0) {
+                    grid.table.find("tr").each(function () {
+                        var dataItem = grid.dataItem(this);
+                        var clrStatus = dataItem.status == 'N' ? 'info' : dataItem.status == 'P' ? 'warning' : dataItem.status == 'S' ? 'success' : dataItem.status == 'R' ? 'inverse' : 'error';
+                        var txtStatus = dataItem.status == 'N' ? 'New' : dataItem.status == 'P' ? 'In Progress' : dataItem.status == 'S' ? 'Success' : dataItem.status == 'R' ? 'Retry' : 'Failed';
+                        var clrIsStored = dataItem.isStored == 'True' ? 'success' : 'error'
+                        var txtIsStored = dataItem.isStored == 'True' ? 'Yes' : 'No'
+                        var clrNotificationStatus = dataItem.notificationStatus == 'S' ? 'success' : dataItem.notificationStatus == 'N' ? 'info' : 'warning';
+                        var txtNotificationStatus = dataItem.notificationStatus == 'S'? 'Sent' : dataItem.notificationStatus == 'N' ? 'Scheduled' : 'Discarded';
+                        var exceptionMsg = dataItem.isStored != 'True' && dataItem == 'S' ? 'File Upload Error' : dataItem.status == 'F' ? 'File Exception' : '';
+                        var exceptionStatus = dataItem.exceptionStatus=='FileException'?'File Exception': dataItem.exceptionStatus=='StorageException'?'Storage Exception':'SMS Exception';
+                        $(this).find(".statusBadgeTemplate").kendoBadge({
+                            themeColor: clrStatus,
+                            text: txtStatus,
+                        });
+                        $(this).find(".isStoredBadgeTemplate").kendoBadge({
+                            themeColor: clrIsStored,
+                            text: txtIsStored,
+                        });
+                        $(this).find('.exceptionBadgeTemplate').kendoExpansionPanel({
+                            title: 'Exception Type',
+                            subTitle: exceptionMsg,
+                            expanded: false
+                        });
+                        $(this).find('.exceptionStatusTemplate').kendoExpansionPanel({
+                            title: 'Exception Type',
+                            subTitle:exceptionStatus,
+                            expanded:false
+                        });
+                        $(this).find(".notificationBadgeTemplate").kendoBadge({
+                            themeColor:clrNotificationStatus,
+                            text:txtNotificationStatus
+                        });
+                        kendo.bind($(this), dataItem);
+                    });
+                }
+            }
+
+            function regenerateFile(sampleId, id) {
+                if (sampleId != undefined) {
+                    console.log(sampleId,id);
+                    $.ajax({
+                        type: "post",
+                        url: window.location.origin + `/api/hl7message/generatehl7messageofsampleid?a_ssampleid=` + sampleId+`&a_sid=`+id,
+                        datatype: "json",
+                        success: function (res) {
+                            if (res == 1) {
+                                $("#notification").getKendoNotification().show("File successfully regenerated for sampleId=>" + sampleId, "success");
+                            } else if (res == 2) {
+                                $("#notification").getKendoNotification().show("File successfully regenerated but unable to upload on blob for sampleId=>" + sampleId, "warning");
+                            } else {
+                                $("#notification").getKendoNotification().show("Unable to regenerate file for sampleId=>" + sampleId, "error");
+                            }
+                            $('#grid').data('kendoGrid').dataSource.read();
+                        }
+                    });
+                }
+            }
+
+             function discardSample(sampleId, id){
+                if(sampleId!=undefined){
+                    $.ajax({
+                        type:"post",
+                        url:window.location.origin + `/api/hl7message/DiscardSampleId?a_ssampleid=` + sampleId+`&a_sid=`+id,
+                        dataType:"json",
+                        success:function(res){
+                            if (res==1){
+                                $("#notification").getKendoNotification().show("File successfully discarded for sampleId=>" + sampleId, "success");
+                            }else {
+                                $("#notification").getKendoNotification().show("Unable to discard file for sampleId=>" + sampleId, "error");
+                            }
+                            $('#grid').data('kendoGrid').dataSource.read();
+                        }
+                    });
+                }
+            }
+
+
+
+            function regenerateAll(){
+                var dataSource = $('#grid').data('kendoGrid').dataSource;
+
+                dataSource.read().then(()=>{
+                    const data = dataSource.data();
+                    if(!data){return}
+
+                    var failedIds = data.filter(row=>row.status==='F').map(row=>[row.sampleId,row.hL7Id]);
+                    if(failedIds.length==0){
+                        $("#notification").getKendoNotification().show("All files already generated" , "success");
+                        return;
+                    }
+                    if(failedIds!=undefined){
+                        $.ajax({
+                                type: "post",
+                                url: window.location.origin + `/api/hl7message/GenerateAllHl7Messages` ,
+                                datatype: "json",
+                                contentType:"application/json",
+                                data:JSON.stringify(failedIds),
+                                success: function (res) {
+                                    if (res == 1) {
+                                        $("#notification").getKendoNotification().show("File successfully regenerated for All sampleIds" , "success");
+                                    }  else {
+                                        $("#notification").getKendoNotification().show("Unable to regenerate file for some sampleIds", "error");
+                                    }
+                                    $('#grid').data('kendoGrid').dataSource.read();
+                                }
+                        });
+                    }
+                });
+            }
+            
+
+
+
+
+            $("#notification").kendoNotification({
+                position: {
+                    pinned: true,
+                    top: 10,
+                    left: null,
+                    bottom: null,
+                    right: 20
+                },
+                animation: {
+                    open: {
+                        effects: "slideIn:left"
+                    },
+                    close: {
+                        effects: "slideIn:left",
+                        reverse: true
+                    }
+                }
+            });
+
+        </script>
+
+        <style type="text/css">
+
+            .k-grid tr .checkbox-align {
+                text-align: center;
+                vertical-align: middle;
+            }
+
+            .onq-logo {
+                width: 48px;
+                height: 36px;
+                margin-bottom: 2px;
+            }
+
+            .qlims-logo{
+                width: 72px;
+                height: 36px;
+                margin-bottom: 5px;
+            }
+
+            .headerdivider {
+                border-left: 1px solid #38546d;
+                background: #16222c;
+                width: 1px;
+                height: 32px;
+                right: 250px;
+                top: 10px;
+            }
+
+            .ui-header{
+                margin-left:15px;
+                margin-right:15px;
+            }
+
+            .button-regen-all{
+                filter:invert(1);
+            }
+
+            .discard {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: transparent;
+                border: 1px;
+            }
+
+            button.btn.btn-info.discard.disabled {
+                filter: opacity(0.2);
+            }
+
+            button.btn.btn-info.regen.disabled {
+                filter: opacity(0.2);
+            }
+
+            .regen {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: transparent;
+                border: 1px;
+            }
+
+
+            img {
+                width: 25px;
+                height: 25px;
+                padding-top: 3px;
+                padding-left: 1px;
+            }
+
+            .Action-container {
+                display: flex;
+                justify-content: space-around;
+            }
+
+            .msg-photo {
+                display: inline-block;
+                width: 32px;
+                height: 25px;
+                border-radius: 20%;
+                background-size: 35px 20px;
+                background-position: center center;
+                vertical-align: middle;
+                line-height: 32px;
+                box-shadow: inset 0 0 1px #999, inset 0 0 10px rgba(0,0,0,.2);
+                margin-right: 5px;
+            }
+
+            .sample-id {
+                display: inline-block;
+                vertical-align: middle;
+                line-height: 32px;
+                padding-left: 10px;
+            }
+
+            .arrlLabNoTemplate{
+                    text-align: center;
+            }
+
+            .k-rating-container .k-rating-item {
+                padding: 4px 0;
+            }
+
+                .k-rating-container .k-rating-item .k-icon {
+                    font-size: 16px;
+                }
+
+            .k-grid .k-grid-search {
+                /*margin-left: auto;*/
+                margin-right: 0;
+            }
+
+            button#RegenerateButton {
+                margin-left: auto;
+                margin-right: 0;
+                background-color: #414141;
+                padding:10px;
+                border-width: 0;
+                color: #fff;
+                cursor: pointer;
+                font-family: -apple-system,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif;
+                font-size: 100%;
+                height: 40px;
+                text-transform: none;
+            }
+
+
+            button#RegenerateButton:focus {
+                box-shadow:none;
+                border-color:transparent;
+            }
+
+            button#RegenerateButton:hover {
+                background-image:none !important
+            }
+
+
+            .statusBadgeTemplate {
+                padding: 4px;
+                width: 100%;
+                color: white !important;
+                /*margin-left: 4em;*/
+                border-radius: 10px !important;
+            }
+
+            .isStoredBadgeTemplate {
+                padding: 4px;
+                width: 30%;
+                color: white !important;
+                /*margin-left: 8em;*/
+            }
+            .k-expander-header {
+                height: 54px !important;
+                width:290px;
+                display: flex;
+                padding:8px 8px !important;
+            }
+
+            .k-expander {
+                width: 290px;
+            }
+
+            .k-expander-title, .k-expander-sub-title {
+                color: red !important;
+            }
+
+            .k-button:active {
+                background-color: #1C1C1C !important;
+                border-color: #090909 !important;
+            }
+
+            .k-button:focus, .k-button:focus:hover {
+                border-color: #1C1C1C /*!important*/;
+                box-shadow: 0 0 2px 1px #090909/* !important*/;
+            }
+
+            .k-i-search {
+                margin: 0 10px 0 20px !important;
+            }
+
+            .k-grid-QueueDataStatus{
+                border-style: none !important;
+                font-weight:bolder !important;
+                font-size:larger !important;
+            }
+
+            .k-input {
+                border-color: transparent !important;
+            }
+
+            .k-display-flex {
+                border-bottom: 2px solid darkgrey !important;
+            }
+
+            .k-input, .k-multiselect-wrap, .k-textbox, .k-textbox>input {
+                background-color: lightgrey !important;
+            }
+
+            .k-grid th, .k-grid td {
+                width: 340px !important;
+            }
+
+            .k-grouping-row {
+                display: none;
+            }
+
+        </style>
+    </div>
+</div>
